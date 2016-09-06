@@ -63,12 +63,12 @@ class ContextInstanceSpec extends Spec {
   "encodes `WrappedValue` extended value class" - {
     case class Entity(x: WrappedEncodable, s: String)
 
-    //    "encoding" in {
-    //      val q = quote {
-    //        query[Entity].insert(_.x -> lift(WrappedEncodable(1)), _.s -> s"string")
-    //      }
-    //      testContext.run(q).prepareRow mustEqual Row(1)
-    //    }
+    "encoding" in {
+      val q = quote {
+        query[Entity].insert(_.x -> lift(WrappedEncodable(1)), _.s -> s"string")
+      }
+      testContext.run(q).prepareRow mustEqual Row(1)
+    }
 
     "decoding" in {
       val q = quote {

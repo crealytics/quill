@@ -8,7 +8,6 @@ import io.getquill.norm.BetaReduction
 
 class ActionMacro(val c: MacroContext)
   extends ContextMacro
-  with EncodingMacro
   with ReifyLiftings {
   import c.universe.{ Ident => _, Function => _, _ }
 

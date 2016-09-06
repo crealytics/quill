@@ -47,15 +47,15 @@ class EncodeBindVariablesSpec extends Spec {
 
   "encodes bind variables for wrapped types" - {
 
-    //    "encodes `WrappedValue` extended value class" in {
-    //      case class Entity(x: WrappedEncodable)
-    //      val q = quote {
-    //        query[Entity].filter(t => t.x == lift(WrappedEncodable(1)))
-    //      }
-    //      val r = testContext.run(q)
-    //      r.string mustEqual "query[Entity].filter(t => t.x == ?).map(t => t.x)"
-    //      r.prepareRow mustEqual Row(1)
-    //    }
+    "encodes `WrappedValue` extended value class" in {
+      case class Entity(x: WrappedEncodable)
+      val q = quote {
+        query[Entity].filter(t => t.x == lift(WrappedEncodable(1)))
+      }
+      val r = testContext.run(q)
+      r.string mustEqual "query[Entity].filter(t => t.x == ?).map(t => t.x)"
+      r.prepareRow mustEqual Row(1)
+    }
 
     "fails for unwrapped class" in {
       case class WrappedNotEncodable(value: Int)
