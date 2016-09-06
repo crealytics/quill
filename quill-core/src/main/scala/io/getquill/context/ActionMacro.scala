@@ -7,9 +7,9 @@ import io.getquill.util.Messages._
 import io.getquill.norm.BetaReduction
 
 class ActionMacro(val c: MacroContext)
-  extends ContextMacro
-  with EncodingMacro
-  with ReifyLiftings {
+    extends ContextMacro
+    with EncodingMacro
+    with ReifyLiftings {
   import c.universe.{ Ident => _, Function => _, _ }
 
   def runAction(quoted: Tree): Tree =
@@ -27,7 +27,7 @@ class ActionMacro(val c: MacroContext)
       ${c.prefix}.executeActionReturning(
         expanded.string,
         expanded.prepare,
-        ${returningExtractor(t.tpe)},
+        ${returningExtractor[T]},
         $returningColumn
       )
     """
@@ -60,7 +60,7 @@ class ActionMacro(val c: MacroContext)
               case ((string, column), items) =>
                 ${c.prefix}.BatchGroupReturning(string, column, items.map(_._2))
             }.toList,
-            ${returningExtractor(t.tpe)}
+            ${returningExtractor[T]}
           )
         """
     }
@@ -98,9 +98,6 @@ class ActionMacro(val c: MacroContext)
       }
     """
 
-  private def returningExtractor(returnType: c.Type): c.Tree = {
-    //    val selectValues = encoding(Ident("X"), returnType, Encoding.inferDecoder(c))
-    //    selectResultExtractor(selectValues)
-    ???
-  }
+  private def returningExtractor[T](implicit t: WeakTypeTag[T]) =
+    q"(row: ${c.prefix}.ResultRow) => implicitly[Decoder[$t]].apply(0, row)"
 }

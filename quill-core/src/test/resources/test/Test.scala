@@ -17,16 +17,16 @@ object Test extends App {
   
   val person = Person(new PersonId(0), "a", 1)
   
-  val q = quote((p: Person) => query[Person].insert(p))
+  val q = quote((p: Person) => query[Person].insert(p).returning(_.id))
   
-  println(run(q(lift(person))).string)
-  
-  run(query[Person].map(_.age))
-  
-  
-  def ins[T: ClassTag : QueryMeta] = {
-    run(query[T])
-  }
-  
-  println(ins[Person].string)
+  println(run(q(lift(person))).extractor(Row(1)))
+//  
+//  run(query[Person].map(_.age))
+//  
+//  
+//  def ins[T: ClassTag : QueryMeta] = {
+//    run(query[T])
+//  }
+//  
+//  println(ins[Person].string)
 }

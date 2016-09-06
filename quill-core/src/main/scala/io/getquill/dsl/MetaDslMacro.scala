@@ -30,14 +30,6 @@ class MetaDslMacro(val c: MacroContext) {
       }
     """
 
-  def materializeInsertReturningMeta[T, R](implicit t: WeakTypeTag[T], r: WeakTypeTag[R]): Tree =
-    q"""
-      new ${c.prefix}.InsertReturningMeta[$t] {
-        override val expand = ${expandAction[T]("insert")}
-        override val extract = (row: ${c.prefix}.ResultRow) => implicitly[${c.prefix}.Decoder[$r]](0, row)
-      }
-    """
-
   private def expandQuery[T](props: List[Symbol])(implicit t: WeakTypeTag[T]) = {
     val terms = props.map(_.name.toTermName)
     val elements =

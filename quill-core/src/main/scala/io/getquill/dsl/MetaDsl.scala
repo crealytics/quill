@@ -7,7 +7,6 @@ trait MetaDslLowPriorityImplicits {
   implicit def materializeQueryMeta[T]: QueryMeta[T] = macro MetaDslMacro.materializeQueryMeta[T]
   implicit def materializeUpdateMeta[T]: UpdateMeta[T] = macro MetaDslMacro.materializeUpdateMeta[T]
   implicit def materializeInsertMeta[T]: InsertMeta[T] = macro MetaDslMacro.materializeInsertMeta[T]
-  implicit def materializeInsertReturningMeta[T, R]: InsertReturningMeta[T, R] = macro MetaDslMacro.materializeInsertReturningMeta[T, R]
 }
 
 trait MetaDsl extends MetaDslLowPriorityImplicits {
@@ -15,10 +14,6 @@ trait MetaDsl extends MetaDslLowPriorityImplicits {
 
   trait InsertMeta[T] {
     val expand: Quoted[(EntityQuery[T], T) => Insert[T]]
-  }
-
-  trait InsertReturningMeta[T, R] extends InsertMeta[T] {
-    val extract: ResultRow => R
   }
 
   trait UpdateMeta[T] {
