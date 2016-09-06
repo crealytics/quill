@@ -421,8 +421,8 @@ trait Parsing extends EntityConfigParsing {
     case q"((${ identParser(i1) }) => $pack.Predef.ArrowAssoc[$t]($prop).$arrow[$v]($value))" =>
       checkTypes(prop, value)
       prop match {
-        case q"${ identParser(i2) }.$prop" if (i1 == i2) =>
-          Assignment(i1, Property(i2, prop.decodedName.toString), astParser(value))
+        case q"$obj.$prop" =>
+          Assignment(i1, Property(astParser(obj), prop.decodedName.toString), astParser(value))
         case prop =>
           c.fail(s"Invalid assignment property: '$prop'")
       }
