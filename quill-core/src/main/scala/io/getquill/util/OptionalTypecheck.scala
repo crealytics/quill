@@ -7,6 +7,6 @@ object OptionalTypecheck {
   def apply(c: MacroContext)(tree: c.Tree): Option[c.Tree] =
     c.typecheck(tree, silent = true) match {
       case c.universe.EmptyTree => None
-      case tree => Some(tree)
+      case tree                 => Some(tree)
     }
 }

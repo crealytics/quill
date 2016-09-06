@@ -15,7 +15,7 @@ class QueryMacro(val c: MacroContext) extends ContextMacro {
   private def expandQuery[T](quoted: Tree, method: String)(implicit t: WeakTypeTag[T]) =
     OptionalTypecheck(c)(q"implicitly[${c.prefix}.Decoder[$t]]") match {
       case Some(decoder) => expandQueryWithDecoder(quoted, method, decoder)
-      case None => expandQueryWithMeta[T](quoted, method)
+      case None          => expandQueryWithMeta[T](quoted, method)
     }
 
   private def expandQueryWithDecoder(quoted: Tree, method: String, decoder: Tree) = {

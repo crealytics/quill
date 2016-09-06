@@ -23,14 +23,14 @@ trait ReifyLiftings {
   private case class Reified(value: Tree, encoder: Option[Tree])
 
   private case class ReifyLiftings(state: collection.Map[TermName, Reified])
-      extends StatefulTransformer[collection.Map[TermName, Reified]] {
+    extends StatefulTransformer[collection.Map[TermName, Reified]] {
 
     private def reify(lift: Lift) =
       lift match {
         case ScalarValueLift(name, value: Tree, encoder: Tree) => Reified(value, Some(encoder))
-        case CaseClassValueLift(name, value: Tree) => Reified(value, None)
+        case CaseClassValueLift(name, value: Tree)             => Reified(value, None)
         case ScalarQueryLift(name, value: Tree, encoder: Tree) => Reified(value, Some(encoder))
-        case CaseClassQueryLift(name, value: Tree) => Reified(value, None)
+        case CaseClassQueryLift(name, value: Tree)             => Reified(value, None)
       }
 
     override def apply(ast: Ast) =
@@ -48,7 +48,7 @@ trait ReifyLiftings {
             case None =>
               tpe.baseType(c.symbolOf[Product]) match {
                 case NoType => c.fail(s"Can't find an encoder for the lifted case class property '$merge'")
-                case _ => apply(CaseClassValueLift(merge.toString, merge))
+                case _      => apply(CaseClassValueLift(merge.toString, merge))
               }
           }
 

@@ -52,14 +52,14 @@ class MetaDslMacro(val c: MacroContext) {
     val terms = expandProperties[T].map(_.name.toTermName)
     val assignments =
       terms.map { term =>
-        q"(x: $t) => x.$term -> v.$term"
+        q"(v: $t) => v.$term -> value.$term"
       }
-    q"${c.prefix}.quote((q: ${c.prefix}.EntityQuery[$t], v: $t) => q.${TermName(method)}(..$assignments))"
+    q"${c.prefix}.quote((q: ${c.prefix}.EntityQuery[$t], value: $t) => q.${TermName(method)}(..$assignments))"
   }
 
   private def expandProperties[T](implicit t: WeakTypeTag[T]) =
     caseClassConstructor(t.tpe) match {
-      case None => c.fail("Can't expand a non-case class")
+      case None              => c.fail("Can't expand a non-case class")
       case Some(constructor) => constructor.paramLists.flatten
     }
 

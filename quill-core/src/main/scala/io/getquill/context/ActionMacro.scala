@@ -7,9 +7,9 @@ import io.getquill.util.Messages._
 import io.getquill.norm.BetaReduction
 
 class ActionMacro(val c: MacroContext)
-    extends ContextMacro
-    with EncodingMacro
-    with ReifyLiftings {
+  extends ContextMacro
+  with EncodingMacro
+  with ReifyLiftings {
   import c.universe.{ Ident => _, Function => _, _ }
 
   def runAction(quoted: Tree): Tree =

@@ -1,10 +1,9 @@
 package io.getquill.dsl
 
-import io.getquill.util.Messages._
-import scala.reflect.macros.blackbox.{Context => MacroContext}
+import scala.reflect.macros.blackbox.{ Context => MacroContext }
 
 class QueryDslMacro(val c: MacroContext) {
-  
+
   import c.universe._
 
   def expandInsert[T](value: Tree)(implicit t: WeakTypeTag[T]): Tree =

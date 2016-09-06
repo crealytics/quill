@@ -7,7 +7,7 @@ import scala.language.experimental.macros
 
 trait LowPriorityImplicits {
   this: EncodingDsl =>
-    
+
   implicit def materializeEncoder[T]: Encoder[T] = macro EncodingDslMacro.materializeEncoder[T]
   implicit def materializeDecoder[T]: Decoder[T] = macro EncodingDslMacro.materializeDecoder[T]
 }
@@ -33,7 +33,7 @@ trait EncodingDsl extends LowPriorityImplicits {
           f(index, value, row)
       }
   }
-  
+
   /* ************************************************************************** */
 
   def lift[T](v: T): T = macro EncodingDslMacro.lift[T]

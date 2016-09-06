@@ -7,7 +7,7 @@ import scala.reflect.macros.blackbox.{ Context => MacroContext }
 class EncodingDslMacro(val c: MacroContext) {
   import c.universe._
 
-  def materializeEncoder[T](implicit t: WeakTypeTag[T]): Tree = 
+  def materializeEncoder[T](implicit t: WeakTypeTag[T]): Tree =
     anyValEncoder(t.tpe)
       .getOrElse(failEncoder(t.tpe))
 
