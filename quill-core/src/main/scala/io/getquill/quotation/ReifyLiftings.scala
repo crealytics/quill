@@ -4,13 +4,14 @@ import io.getquill.ast._
 import scala.reflect.macros.whitebox.{ Context => MacroContext }
 import scala.reflect.NameTransformer
 import io.getquill.dsl.EncodingDsl
-import io.getquill.dsl.macroz.LiftingMacro
 import io.getquill.norm.BetaReduction
+import io.getquill.util.OptionalTypecheck
+import io.getquill.util.Messages._
 
 case class ScalarValueLifting[T, U](value: T, encoder: EncodingDsl#Encoder[U])
 case class CaseClassValueLifting[T](value: T)
 
-trait ReifyLiftings extends LiftingMacro {
+trait ReifyLiftings {
   val c: MacroContext
   import c.universe._
 
@@ -22,14 +23,14 @@ trait ReifyLiftings extends LiftingMacro {
   private case class Reified(value: Tree, encoder: Option[Tree])
 
   private case class ReifyLiftings(state: collection.Map[TermName, Reified])
-    extends StatefulTransformer[collection.Map[TermName, Reified]] {
+      extends StatefulTransformer[collection.Map[TermName, Reified]] {
 
     private def reify(lift: Lift) =
       lift match {
         case ScalarValueLift(name, value: Tree, encoder: Tree) => Reified(value, Some(encoder))
-        case CaseClassValueLift(name, value: Tree)             => Reified(value, None)
+        case CaseClassValueLift(name, value: Tree) => Reified(value, None)
         case ScalarQueryLift(name, value: Tree, encoder: Tree) => Reified(value, Some(encoder))
-        case CaseClassQueryLift(name, value: Tree)             => Reified(value, None)
+        case CaseClassQueryLift(name, value: Tree) => Reified(value, None)
       }
 
     override def apply(ast: Ast) =
@@ -42,12 +43,12 @@ trait ReifyLiftings extends LiftingMacro {
           val term = TermName(prop)
           val tpe = v.tpe.member(term).typeSignatureIn(v.tpe)
           val merge = c.typecheck(q"$v.$term")
-          inferEncoder(tpe) match {
+          OptionalTypecheck(c)(q"implicitly[${c.prefix}.Encoder[$tpe]]") match {
             case Some(enc) => apply(ScalarValueLift(merge.toString, merge, enc))
             case None =>
               tpe.baseType(c.symbolOf[Product]) match {
-                case NoType => failEncoder(tpe)
-                case _      => apply(CaseClassValueLift(merge.toString, merge))
+                case NoType => c.fail(s"Can't find an encoder for the lifted case class property '$merge'")
+                case _ => apply(CaseClassValueLift(merge.toString, merge))
               }
           }
 

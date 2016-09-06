@@ -5,7 +5,6 @@ import scala.reflect.macros.whitebox.{ Context => MacroContext }
 import io.getquill.ast.Ast
 import io.getquill.ast.Property
 import io.getquill.util.Messages.RichContext
-import io.getquill.WrappedType
 
 trait EncodingMacro {
   val c: MacroContext
@@ -43,10 +42,7 @@ trait EncodingMacro {
       param =>
         val paramType = param.typeSignature.asSeenFrom(typ, typ.typeSymbol)
         val nestedAst =
-          if (typ.baseType(c.weakTypeOf[WrappedType].typeSymbol) != NoType)
-            ast
-          else
-            Property(ast, param.name.decodedName.toString)
+          Property(ast, param.name.decodedName.toString)
         encoding(nestedAst, paramType, inferEncoding)
     })
 

@@ -1,8 +1,6 @@
 package io.getquill.context
 
 import scala.reflect.macros.whitebox.{ Context => MacroContext }
-import io.getquill.ast.Ident
-import io.getquill.norm.select.SelectResultExtraction
 import io.getquill.ast._
 import io.getquill.quotation.ReifyLiftings
 import io.getquill.util.Messages._
@@ -11,7 +9,6 @@ import io.getquill.norm.BetaReduction
 class ActionMacro(val c: MacroContext)
   extends ContextMacro
   with EncodingMacro
-  with SelectResultExtraction
   with ReifyLiftings {
   import c.universe.{ Ident => _, Function => _, _ }
 
@@ -101,8 +98,9 @@ class ActionMacro(val c: MacroContext)
       }
     """
 
-  private def returningExtractor(returnType: c.Type) = {
-    val selectValues = encoding(Ident("X"), returnType, Encoding.inferDecoder(c))
-    selectResultExtractor(selectValues)
+  private def returningExtractor(returnType: c.Type): c.Tree = {
+    //    val selectValues = encoding(Ident("X"), returnType, Encoding.inferDecoder(c))
+    //    selectResultExtractor(selectValues)
+    ???
   }
 }
