@@ -8,7 +8,7 @@ class MetaDslMacro(val c: MacroContext) {
   import c.universe._
 
   def materializeQueryMeta[T](implicit t: WeakTypeTag[T]): Tree = {
-    val value = this.value(t.tpe)
+    val value = this.value("Decoder", t.tpe)
     q"""
       new ${c.prefix}.QueryMeta[$t] {
         override val expand = ${expandQuery[T](flatten(value))}
@@ -33,7 +33,7 @@ class MetaDslMacro(val c: MacroContext) {
 
   private def expandQuery[T](scalars: List[Scalar])(implicit t: WeakTypeTag[T]) = {
     val elements = scalars.map(_.nest(q"x"))
-    q"${c.prefix}.quote((q: ${c.prefix}.Query[$t]) => q.map(x => (..$elements)))"
+    q"${c.prefix}.quote((q: ${c.prefix}.Query[$t]) => q.map(x => io.getquill.dsl.UnlimitedTuple(..$elements)))"
   }
 
   private def extract[T](value: Value)(implicit t: WeakTypeTag[T]): Tree = {
@@ -51,19 +51,16 @@ class MetaDslMacro(val c: MacroContext) {
 
   private def expandAction[T](method: String)(implicit t: WeakTypeTag[T]): Tree = {
     val assignments =
-      expandFlat[T].map { scalar =>
+      flatten(value("Encoder", t.tpe)).map { scalar =>
         q"(v: $t) => ${scalar.nest(q"v")} -> ${scalar.nest(q"value")}"
       }
     q"${c.prefix}.quote((q: ${c.prefix}.EntityQuery[$t], value: $t) => q.${TermName(method)}(..$assignments))"
   }
 
-  private def expandFlat[T](implicit t: WeakTypeTag[T]) =
-    flatten(value(t.tpe))
-
   private def flatten(value: Value): List[Scalar] =
     value match {
       case Nested(tpe, params) => params.flatten.map(flatten).flatten
-      case s: Scalar => List(s)
+      case s: Scalar           => List(s)
     }
 
   sealed trait Value
@@ -75,30 +72,40 @@ class MetaDslMacro(val c: MacroContext) {
       }
   }
 
-  private def value(tpe: Type, path: List[TermName] = Nil): Value =
-    OptionalTypecheck(c)(q"implicitly[${c.prefix}.Decoder[$tpe]]") match {
-      case Some(decoder) => Scalar(path, decoder)
-      case None =>
-        tpe.baseType(c.symbolOf[MetaDsl#Embedded]) match {
-          case NoType if (path.nonEmpty && !isTuple(tpe)) =>
-            c.fail(
-              s"Can't expand nested value '$tpe', please make it an `Embedded` " +
-                "case class or provide a decoder for it.")
-          case _ =>
-            caseClassConstructor(tpe) match {
-              case None =>
-                c.fail(s"Found the embedded '$tpe', but it is not a case class")
-              case Some(constructor) =>
-                val params =
-                  constructor.paramLists.map {
-                    _.map { param =>
-                      value(param.typeSignature.asSeenFrom(tpe, tpe.typeSymbol), path :+ param.name.toTermName)
+  private def value(encoding: String, tpe: Type): Value = {
+    def apply(tpe: Type, path: List[TermName], nested: Boolean): Value = {
+      OptionalTypecheck(c)(q"implicitly[${c.prefix}.${TypeName(encoding)}[$tpe]]") match {
+        case Some(encoding) => Scalar(path, encoding)
+        case None =>
+          tpe.baseType(c.symbolOf[MetaDsl#Embedded]) match {
+            case NoType if (nested) =>
+              c.fail(
+                s"Can't expand nested value '$tpe', please make it an `Embedded` " +
+                  s"case class or provide an implicit $encoding for it."
+              )
+            case _ =>
+              caseClassConstructor(tpe) match {
+                case None =>
+                  c.fail(s"Found the embedded '$tpe', but it is not a case class")
+                case Some(constructor) =>
+                  c.warn(tpe.toString())
+                  val params =
+                    constructor.paramLists.map {
+                      _.map { param =>
+                        apply(
+                          param.typeSignature.asSeenFrom(tpe, tpe.typeSymbol),
+                          path :+ param.name.toTermName,
+                          nested = nested || !isTuple(tpe)
+                        )
+                      }
                     }
-                  }
-                Nested(tpe, params)
-            }
-        }
+                  Nested(tpe, params)
+              }
+          }
+      }
     }
+    apply(tpe, path = Nil, nested = false)
+  }
 
   private def isTuple(tpe: Type) =
     tpe.typeSymbol.name.toString.startsWith("Tuple")

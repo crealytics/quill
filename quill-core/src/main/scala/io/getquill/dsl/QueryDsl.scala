@@ -7,7 +7,7 @@ import io.getquill.quotation.NonQuotedException
 import scala.annotation.compileTimeOnly
 
 private[dsl] trait QueryDsl {
-  this: CoreDsl =>
+  dsl: CoreDsl =>
 
   @compileTimeOnly(NonQuotedException.message)
   def query[T](implicit ct: ClassTag[T]): EntityQuery[T] = NonQuotedException()

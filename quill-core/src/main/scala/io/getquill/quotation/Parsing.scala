@@ -397,11 +397,13 @@ trait Parsing extends EntityConfigParsing {
   private def is[T](tree: Tree)(implicit t: TypeTag[T]) =
     tree.tpe <:< t.tpe
 
-  val valueParser: Parser[Value] = Parser[Value] {
+  val valueParser: Parser[Ast] = Parser[Ast] {
     case q"null" => NullValue
     case Literal(c.universe.Constant(v)) => Constant(v)
     case q"((..$v))" if (v.size > 1) => Tuple(v.map(astParser(_)))
     case q"(($pack.Predef.ArrowAssoc[$t1]($v1).$arrow[$t2]($v2)))" => Tuple(List(astParser(v1), astParser(v2)))
+    case q"io.getquill.dsl.UnlimitedTuple.apply($v)" => astParser(v)
+    case q"io.getquill.dsl.UnlimitedTuple.apply(..$v)" => Tuple(v.map(astParser(_)))
   }
 
   val actionParser: Parser[Ast] = Parser[Ast] {

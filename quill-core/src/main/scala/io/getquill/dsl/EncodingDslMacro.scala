@@ -23,7 +23,7 @@ class EncodingDslMacro(val c: MacroContext) {
 
   private def lift[T](v: Tree, method: String)(implicit t: WeakTypeTag[T]): Tree =
     OptionalTypecheck(c)(q"implicitly[${c.prefix}.Encoder[$t]]") match {
-      case Some(enc) => 
+      case Some(enc) =>
         q"${c.prefix}.${TermName(s"${method}Scalar")}($v)($enc)"
       case None =>
         t.tpe.baseType(c.symbolOf[Product]) match {

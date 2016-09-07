@@ -17,6 +17,7 @@ class QueryDslMacro(val c: MacroContext) {
 
   private def meta[T](prefix: String)(implicit t: WeakTypeTag[T]): Tree = {
     val expanderTpe = c.typecheck(tq"${TypeName(s"${prefix}Meta")}[$t]", c.TYPEmode)
-    c.inferImplicitValue(expanderTpe.tpe, silent = false)
+    c.inferImplicitValue(expanderTpe.tpe)
+      .orElse(q"${TermName(s"materialize${prefix}Meta")}[$t]")
   }
 }
